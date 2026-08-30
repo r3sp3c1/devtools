@@ -1,0 +1,503 @@
+{
+  "$schema": "https://www.raycast.com/schemas/extension.json",
+  "name": "devtools",
+  "title": "DevTools",
+  "description": "A clone of DevUtils. Because having two identical tools is better than one.",
+  "icon": "command-icon.png",
+  "author": "Antigravity",
+  "license": "MIT",
+  "commands": [
+    {
+      "name": "dashboard",
+      "title": "DevTools",
+      "description": "Launch the ultimate DevTools dashboard",
+      "mode": "view",
+      "preferences": [
+        {
+          "name": "defaultTailMode",
+          "title": "Default Tail/Head Mode",
+          "description": "Default mode for the File Tail tool",
+          "type": "dropdown",
+          "required": false,
+          "default": "tail",
+          "data": [
+            {
+              "title": "Tail",
+              "value": "tail"
+            },
+            {
+              "title": "Head",
+              "value": "head"
+            }
+          ]
+        },
+        {
+          "name": "defaultTailLines",
+          "title": "Default Tail/Head Lines",
+          "description": "Default number of lines to show",
+          "type": "textfield",
+          "required": false,
+          "default": "50"
+        },
+        {
+          "name": "pcapInterface",
+          "title": "Default PCAP Interface",
+          "description": "Network interface to sniff (e.g. en0)",
+          "type": "textfield",
+          "required": false,
+          "default": "en0"
+        },
+        {
+          "name": "pcapFolder",
+          "title": "Default PCAP Output Folder",
+          "description": "Path to save .pcap files",
+          "type": "textfield",
+          "required": false,
+          "default": "~/Downloads"
+        },
+        {
+          "name": "pcapTimeLimit",
+          "title": "PCAP Time Limit (Seconds)",
+          "description": "Stop capture after X seconds",
+          "type": "textfield",
+          "required": false,
+          "default": "60"
+        },
+        {
+          "name": "pcapSizeLimit",
+          "title": "PCAP Size Limit (MB)",
+          "description": "Stop capture after X MBs",
+          "type": "textfield",
+          "required": false,
+          "default": "100"
+        },
+        {
+          "name": "sshTerminal",
+          "title": "SSH Terminal App",
+          "description": "Terminal for SSH connections",
+          "type": "dropdown",
+          "required": false,
+          "default": "iTerm",
+          "data": [
+            {
+              "title": "Apple Terminal",
+              "value": "Terminal"
+            },
+            {
+              "title": "iTerm2",
+              "value": "iTerm"
+            }
+          ]
+        },
+        {
+          "name": "defaultArchiveFormat",
+          "title": "Default Archive Format",
+          "description": "Default format for the Archive Manager",
+          "type": "dropdown",
+          "required": false,
+          "default": "zip",
+          "data": [
+            {
+              "title": "ZIP",
+              "value": "zip"
+            },
+            {
+              "title": "TAR.GZ",
+              "value": "tar.gz"
+            },
+            {
+              "title": "TAR",
+              "value": "tar"
+            }
+          ]
+        },
+        {
+          "name": "telegramBotToken",
+          "title": "Telegram Bot Token",
+          "description": "Token for your Telegram Bot (get from @BotFather)",
+          "type": "password",
+          "required": false
+        },
+        {
+          "name": "telegramChatId",
+          "title": "Telegram Default Chat ID",
+          "description": "Default Chat ID or Channel ID to send messages to",
+          "type": "textfield",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "archive-manager",
+      "title": "Archive Manager",
+      "description": "Open Archive Manager",
+      "mode": "view"
+    },
+    {
+      "name": "arp-watch",
+      "title": "Arp Watch",
+      "description": "Open Arp Watch",
+      "mode": "view"
+    },
+    {
+      "name": "base-converter",
+      "title": "Base Converter",
+      "description": "Open Base Converter",
+      "mode": "view"
+    },
+    {
+      "name": "cidr-calc",
+      "title": "Cidr Calc",
+      "description": "Open Cidr Calc",
+      "mode": "view"
+    },
+    {
+      "name": "composerize-tool",
+      "title": "Composerize Tool",
+      "description": "Open Composerize Tool",
+      "mode": "view"
+    },
+    {
+      "name": "cron-parser",
+      "title": "Cron Parser",
+      "description": "Open Cron Parser",
+      "mode": "view"
+    },
+    {
+      "name": "docker-manager",
+      "title": "Docker Manager",
+      "description": "Open Docker Manager",
+      "mode": "view"
+    },
+    {
+      "name": "fake-data",
+      "title": "Fake Data",
+      "description": "Open Fake Data",
+      "mode": "view"
+    },
+    {
+      "name": "file-converter",
+      "title": "File Converter",
+      "description": "Open File Converter",
+      "mode": "view"
+    },
+    {
+      "name": "file-inspector",
+      "title": "File Inspector",
+      "description": "Open File Inspector",
+      "mode": "view"
+    },
+    {
+      "name": "file-tail",
+      "title": "File Tail",
+      "description": "Open File Tail",
+      "mode": "view"
+    },
+    {
+      "name": "google-translate",
+      "title": "Google Translate",
+      "description": "Open Google Translate",
+      "mode": "view"
+    },
+    {
+      "name": "hash-generator",
+      "title": "Hash Generator",
+      "description": "Open Hash Generator",
+      "mode": "view"
+    },
+    {
+      "name": "json-formatter",
+      "title": "Json Formatter",
+      "description": "Open Json Formatter",
+      "mode": "view"
+    },
+    {
+      "name": "json-path",
+      "title": "Json Path",
+      "description": "Open Json Path",
+      "mode": "view"
+    },
+    {
+      "name": "json-ts",
+      "title": "Json Ts",
+      "description": "Open Json Ts",
+      "mode": "view"
+    },
+    {
+      "name": "json-yaml",
+      "title": "Json Yaml",
+      "description": "Open Json Yaml",
+      "mode": "view"
+    },
+    {
+      "name": "jwt-debugger",
+      "title": "Jwt Debugger",
+      "description": "Open Jwt Debugger",
+      "mode": "view"
+    },
+    {
+      "name": "live-bandwidth",
+      "title": "Live Bandwidth",
+      "description": "Open Live Bandwidth",
+      "mode": "view"
+    },
+    {
+      "name": "lorem-ipsum",
+      "title": "Lorem Ipsum",
+      "description": "Open Lorem Ipsum",
+      "mode": "view"
+    },
+    {
+      "name": "mac-spoofer",
+      "title": "Mac Spoofer",
+      "description": "Open Mac Spoofer",
+      "mode": "view"
+    },
+    {
+      "name": "markdown-preview",
+      "title": "Markdown Preview",
+      "description": "Open Markdown Preview",
+      "mode": "view"
+    },
+    {
+      "name": "nmap-scanner",
+      "title": "Nmap Scanner",
+      "description": "Open Nmap Scanner",
+      "mode": "view"
+    },
+    {
+      "name": "pcap-sniffer",
+      "title": "Pcap Sniffer",
+      "description": "Open Pcap Sniffer",
+      "mode": "view"
+    },
+    {
+      "name": "proxmox-manager",
+      "title": "Proxmox Manager",
+      "description": "Open Proxmox Manager",
+      "mode": "view"
+    },
+    {
+      "name": "rclone-dropper",
+      "title": "Rclone Dropper",
+      "description": "Open Rclone Dropper",
+      "mode": "view"
+    },
+    {
+      "name": "scp-transfer",
+      "title": "Scp Transfer",
+      "description": "Open Scp Transfer",
+      "mode": "view"
+    },
+    {
+      "name": "sql-formatter",
+      "title": "Sql Formatter",
+      "description": "Open Sql Formatter",
+      "mode": "view"
+    },
+    {
+      "name": "sqlite-explorer",
+      "title": "Sqlite Explorer",
+      "description": "Open Sqlite Explorer",
+      "mode": "view"
+    },
+    {
+      "name": "ssh-keygen",
+      "title": "Ssh Keygen",
+      "description": "Open Ssh Keygen",
+      "mode": "view"
+    },
+    {
+      "name": "ssh-manager",
+      "title": "Ssh Manager",
+      "description": "Open Ssh Manager",
+      "mode": "view"
+    },
+    {
+      "name": "ssh-navigator",
+      "title": "Ssh Navigator",
+      "description": "Open Ssh Navigator",
+      "mode": "view"
+    },
+    {
+      "name": "ssl-inspector",
+      "title": "Ssl Inspector",
+      "description": "Open Ssl Inspector",
+      "mode": "view"
+    },
+    {
+      "name": "string-case",
+      "title": "String Case",
+      "description": "Open String Case",
+      "mode": "view"
+    },
+    {
+      "name": "systemd-creator",
+      "title": "Systemd Creator",
+      "description": "Open Systemd Creator",
+      "mode": "view"
+    },
+    {
+      "name": "tcp-traceroute",
+      "title": "Tcp Traceroute",
+      "description": "Open Tcp Traceroute",
+      "mode": "view"
+    },
+    {
+      "name": "telegram-sender",
+      "title": "Telegram Sender",
+      "description": "Open Telegram Sender",
+      "mode": "view"
+    },
+    {
+      "name": "unix-time",
+      "title": "Unix Time",
+      "description": "Open Unix Time",
+      "mode": "view"
+    },
+    {
+      "name": "url-parser",
+      "title": "Url Parser",
+      "description": "Open Url Parser",
+      "mode": "view"
+    },
+    {
+      "name": "wlan-courier",
+      "title": "Wlan Courier",
+      "description": "Open Wlan Courier",
+      "mode": "view"
+    },
+    {
+      "name": "wol-sniper",
+      "title": "Wol Sniper",
+      "description": "Open Wol Sniper",
+      "mode": "view"
+    },
+    {
+      "name": "list-keys",
+      "title": "List Keys",
+      "description": "List, manage, and edit your GPG keys.",
+      "mode": "view"
+    },
+    {
+      "name": "generate-key",
+      "title": "Generate Key",
+      "description": "Generate a new GPG keypair.",
+      "mode": "view"
+    },
+    {
+      "name": "encrypt",
+      "title": "Encrypt File/Text",
+      "description": "Encrypt files or text with GPG.",
+      "mode": "view"
+    },
+    {
+      "name": "decrypt",
+      "title": "Decrypt File/Text",
+      "description": "Decrypt files or text with GPG.",
+      "mode": "view"
+    },
+    {
+      "name": "sign",
+      "title": "Sign File/Text",
+      "description": "Sign files or text with GPG.",
+      "mode": "view"
+    },
+    {
+      "name": "verify",
+      "title": "Verify Signature",
+      "description": "Verify GPG signatures of files or text.",
+      "mode": "view"
+    },
+    {
+      "name": "import-key",
+      "title": "Import Key",
+      "description": "Import a GPG key or keychain.",
+      "mode": "view"
+    },
+    {
+      "name": "quick-encrypt-aes",
+      "title": "Quick Encrypt (AES)",
+      "description": "Quickly encrypt selected files or clipboard text using AES.",
+      "mode": "no-view"
+    },
+    {
+      "name": "quick-encrypt-kyber",
+      "title": "Quick Encrypt (Kyber)",
+      "description": "Quickly encrypt selected files or clipboard text using Post-Quantum Kyber.",
+      "mode": "no-view"
+    },
+    {
+      "name": "quick-encrypt-libsodium",
+      "title": "Quick Encrypt (Libsodium)",
+      "description": "Quickly encrypt selected files or clipboard text using Libsodium.",
+      "mode": "no-view"
+    },
+    {
+      "name": "quick-decrypt",
+      "title": "Quick Decrypt",
+      "description": "Quickly decrypt selected AES, Kyber, or Libsodium files/text.",
+      "mode": "no-view",
+      "preferences": [
+        {
+          "name": "defaultAgeKey",
+          "title": "Default Age Key",
+          "description": "The name or ID of the default Age key to use for quick decryption.",
+          "type": "textfield",
+          "required": false
+        }
+      ]
+    }
+  ],
+  "dependencies": {
+    "@faker-js/faker": "^10.6.0",
+    "@raycast/api": "^1.81.2",
+    "@raycast/utils": "^1.16.3",
+    "@types/libsodium-wrappers": "^0.7.14",
+    "@types/qrcode": "^1.5.6",
+    "@vitalets/google-translate-api": "^9.2.1",
+    "age-encryption": "^0.3.1",
+    "axios": "^1.20.0",
+    "composerize": "^1.7.6",
+    "cron-parser": "^5.10.0",
+    "cronstrue": "^3.24.0",
+    "crypto-js": "^4.2.0",
+    "crystals-kyber": "^5.1.0",
+    "curlconverter": "^4.12.0",
+    "date-fns": "^3.6.0",
+    "file-type": "^16.5.4",
+    "form-data": "^4.0.6",
+    "htmltojsx": "^0.3.0",
+    "ip": "^2.0.1",
+    "json-to-ts": "^2.1.0",
+    "jsonpath-plus": "^10.4.0",
+    "jwt-decode": "^4.0.0",
+    "libsodium-wrappers-sumo": "^0.8.4",
+    "prettier": "^3.3.3",
+    "qrcode": "^1.5.4",
+    "sql-formatter": "^15.3.2",
+    "ssh-config": "^5.2.1",
+    "uuid": "^10.0.0",
+    "wake_on_lan": "^1.0.0",
+    "yaml": "^2.5.0"
+  },
+  "devDependencies": {
+    "@raycast/eslint-config": "^1.0.8",
+    "@types/crypto-js": "^4.2.2",
+    "@types/ip": "^1.1.3",
+    "@types/jsonpath": "^0.2.4",
+    "@types/node": "20.8.10",
+    "@types/react": "^19.0.10",
+    "@types/uuid": "^10.0.0",
+    "eslint": "^8.57.0",
+    "typescript": "^5.4.5"
+  },
+  "scripts": {
+    "build": "ray build -e dist",
+    "dev": "ray develop",
+    "fix-lint": "ray lint --fix",
+    "lint": "ray lint",
+    "publish": "npx @raycast/api@latest publish",
+    "postinstall": "node fix-kyber.js"
+  }
+}
