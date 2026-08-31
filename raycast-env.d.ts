@@ -89,7 +89,10 @@ declare namespace Preferences {
   /** Preferences accessible in the `rclone-dropper` command */
   export type RcloneDropper = ExtensionPreferences & {}
   /** Preferences accessible in the `scp-transfer` command */
-  export type ScpTransfer = ExtensionPreferences & {}
+  export type ScpTransfer = ExtensionPreferences & {
+  /** SSH Terminal App - Terminal for SSH connections */
+  "sshTerminal": "Terminal" | "iTerm"
+}
   /** Preferences accessible in the `sql-formatter` command */
   export type SqlFormatter = ExtensionPreferences & {}
   /** Preferences accessible in the `sqlite-explorer` command */
@@ -97,7 +100,10 @@ declare namespace Preferences {
   /** Preferences accessible in the `ssh-keygen` command */
   export type SshKeygen = ExtensionPreferences & {}
   /** Preferences accessible in the `ssh-manager` command */
-  export type SshManager = ExtensionPreferences & {}
+  export type SshManager = ExtensionPreferences & {
+  /** SSH Terminal App - Terminal for SSH connections */
+  "sshTerminal": "Terminal" | "iTerm"
+}
   /** Preferences accessible in the `ssh-navigator` command */
   export type SshNavigator = ExtensionPreferences & {}
   /** Preferences accessible in the `ssl-inspector` command */

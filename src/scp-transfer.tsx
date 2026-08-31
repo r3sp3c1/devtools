@@ -9,10 +9,15 @@ import {
   Icon,
   useNavigation,
   Form,
+  getPreferenceValues,
 } from "@raycast/api";
 import { useState, useEffect } from "react";
 import { exec } from "child_process";
 import React from "react";
+
+interface Preferences {
+  sshTerminal: string;
+}
 
 interface Server {
   id: string;
@@ -97,6 +102,7 @@ function ServerForm({
 }
 
 export default function Command() {
+  const prefs = getPreferenceValues<Preferences>();
   const [servers, setServers] = useState<Server[]>([]);
   const [files, setFiles] = useState<string[]>([]);
   const { push } = useNavigation();
@@ -151,6 +157,46 @@ export default function Command() {
     saveServers(servers.map((s) => ({ ...s, isDefault: s.id === id })));
   };
 
+  const connectSSH = (server: Server) => {
+    const cmd = `ssh -A ${server.user}@${server.ip}`;
+
+    let appleScript = "";
+    if (prefs.sshTerminal === "iTerm") {
+      appleScript = `
+        tell application "iTerm"
+          activate
+          if (count of windows) = 0 then
+            create window with default profile
+          else
+            tell current window
+              create tab with default profile
+            end tell
+          end if
+          tell current session of current window
+            write text "${cmd}"
+          end tell
+        end tell
+      `;
+    } else {
+      appleScript = `
+        tell application "Terminal"
+          activate
+          do script "${cmd}"
+        end tell
+      `;
+    }
+
+    exec(`osascript -e '${appleScript}'`, (err) => {
+      if (err) {
+        showToast({
+          style: Toast.Style.Failure,
+          title: "Failed to connect",
+          message: err.message,
+        });
+      }
+    });
+  };
+
   const transfer = async (server: Server) => {
     if (files.length === 0) {
       showToast({
@@ -166,18 +212,14 @@ export default function Command() {
     });
     const fileArgs = files.map((f) => `"${f}"`).join(" ");
 
-    // Uses standard ssh-agent automatically
     const cmd = `scp -r ${fileArgs} ${server.user}@${server.ip}:${server.path}`;
 
-    // Raycast strips environment variables. Fetch SSH_AUTH_SOCK from macOS launchd
-    let sshAuthSock = process.env.SSH_AUTH_SOCK;
+    // Robust fetch of SSH_AUTH_SOCK bypassing isolated shell environments
+    let sshAuthSock = "";
     try {
-      if (!sshAuthSock) {
-        sshAuthSock = require("child_process")
-          .execSync("zsh -c 'source ~/.zshrc && printenv SSH_AUTH_SOCK'")
-          .toString()
-          .trim();
-      }
+      sshAuthSock = require("child_process")
+        .execSync("launchctl getenv SSH_AUTH_SOCK", { encoding: "utf8" })
+        .trim();
     } catch (e) {
       // ignore
     }
@@ -245,6 +287,11 @@ export default function Command() {
                   onAction={() => transfer(s)}
                 />
               )}
+              <Action
+                title="Connect via SSH"
+                icon={Icon.Terminal}
+                onAction={() => connectSSH(s)}
+              />
               <Action
                 title="Edit Server"
                 icon={Icon.Pencil}

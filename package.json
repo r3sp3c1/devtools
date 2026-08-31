@@ -287,7 +287,27 @@
       "name": "scp-transfer",
       "title": "Scp Transfer",
       "description": "Open Scp Transfer",
-      "mode": "view"
+      "mode": "view",
+      "preferences": [
+        {
+          "name": "sshTerminal",
+          "title": "SSH Terminal App",
+          "description": "Terminal for SSH connections",
+          "type": "dropdown",
+          "required": false,
+          "default": "iTerm",
+          "data": [
+            {
+              "title": "Apple Terminal",
+              "value": "Terminal"
+            },
+            {
+              "title": "iTerm2",
+              "value": "iTerm"
+            }
+          ]
+        }
+      ]
     },
     {
       "name": "sql-formatter",
@@ -311,7 +331,27 @@
       "name": "ssh-manager",
       "title": "Ssh Manager",
       "description": "Open Ssh Manager",
-      "mode": "view"
+      "mode": "view",
+      "preferences": [
+        {
+          "name": "sshTerminal",
+          "title": "SSH Terminal App",
+          "description": "Terminal for SSH connections",
+          "type": "dropdown",
+          "required": false,
+          "default": "iTerm",
+          "data": [
+            {
+              "title": "Apple Terminal",
+              "value": "Terminal"
+            },
+            {
+              "title": "iTerm2",
+              "value": "iTerm"
+            }
+          ]
+        }
+      ]
     },
     {
       "name": "ssh-navigator",
