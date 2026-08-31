@@ -225,8 +225,21 @@ export default function Command() {
 
     // Fetch Loaded Keys
     try {
-      const cmd = "zsh -c 'source ~/.zshrc >/dev/null 2>&1; ssh-add -l'";
-      exec(cmd, (err, stdout, stderr) => {
+      let sock = "";
+      try {
+        sock = require("child_process").execSync("launchctl getenv SSH_AUTH_SOCK", { encoding: "utf8" }).trim();
+      } catch (e) {
+         // ignore
+      }
+
+      const env: Record<string, string> = { 
+        ...(process.env as Record<string, string>), 
+        PATH: "/opt/homebrew/bin:/usr/local/bin:/usr/sbin:/sbin:/usr/bin:/bin" 
+      };
+      if (sock) env.SSH_AUTH_SOCK = sock;
+
+      const cmd = "ssh-add -L";
+      exec(cmd, { env }, (err, stdout, stderr) => {
         if (
           err ||
           stdout.includes("The agent has no identities") ||
@@ -239,18 +252,19 @@ export default function Command() {
         }
 
         const lines = stdout.trim().split("\n");
-        const parsedKeys = lines.map((line) => {
+        const parsedKeys = lines.map((line, idx) => {
           const parts = line.split(" ");
           return {
-            type: (parts[3] || "Key").replace(/[()]/g, ""),
-            hash: parts[1] || "",
-            path: parts[2] || "Unknown",
+            type: (parts[0] || "Key").split('-').pop()?.toUpperCase() || "KEY",
+            hash: parts.length > 1 ? parts[1].substring(0, 25) + "..." : `hash-${idx}`,
+            path: parts.length > 2 ? parts.slice(2).join(" ") : "Loaded Key",
           };
-        }).filter(k => k.hash.startsWith("SHA256:") || k.hash.startsWith("MD5:"));
+        }).filter(k => k.hash.length > 0 && !k.hash.startsWith("hash-"));
         setKeys(parsedKeys);
         setLoading(false);
       });
-    } catch (e) {
+    } catch (e: any) {
+      setKeys([{ type: "CRASH", hash: "crash", path: `Fatal error: ${e.message}` }]);
       setLoading(false);
     }
   };
