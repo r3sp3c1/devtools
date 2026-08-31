@@ -282,9 +282,13 @@ export default function Command() {
   };
 
   const unloadKey = (k: SSHKey) => {
-    // If it's not a file path, we might not be able to unload it directly via -d
-    const cmd = `zsh -c 'source ~/.zshrc >/dev/null 2>&1; ssh-add -d "${k.path}"'`;
-    exec(cmd, (err, stdout, stderr) => {
+    let sock = "";
+    try { sock = require("child_process").execSync("launchctl getenv SSH_AUTH_SOCK", { encoding: "utf8" }).trim(); } catch (e) {}
+    const env = { ...process.env };
+    if (sock) env.SSH_AUTH_SOCK = sock;
+    const cmd = `ssh-add -d "${k.path}"`;
+
+    exec(cmd, { env }, (err, stdout, stderr) => {
       if (err) {
         showToast({
           style: Toast.Style.Failure,
@@ -303,8 +307,13 @@ export default function Command() {
   };
 
   const unloadAllKeys = () => {
-    const cmd = `zsh -c 'source ~/.zshrc >/dev/null 2>&1; ssh-add -D'`;
-    exec(cmd, (err) => {
+    let sock = "";
+    try { sock = require("child_process").execSync("launchctl getenv SSH_AUTH_SOCK", { encoding: "utf8" }).trim(); } catch (e) {}
+    const env = { ...process.env };
+    if (sock) env.SSH_AUTH_SOCK = sock;
+    const cmd = `ssh-add -D`;
+
+    exec(cmd, { env }, (err) => {
       if (err) {
         showToast({
           style: Toast.Style.Failure,

@@ -26,11 +26,12 @@ type Server = {
 const runSSHCmd = (server: Server, cmd: string): Promise<string> => {
   return new Promise((resolve, reject) => {
     const fullCmd = `ssh -o BatchMode=yes -o ConnectTimeout=5 -p ${server.port} ${server.user}@${server.host} "${cmd}"`;
-    const sock = require("child_process")
-      .execSync("zsh -c 'source ~/.zshrc && printenv SSH_AUTH_SOCK'")
-      .toString()
-      .trim();
-    const env = { ...process.env, SSH_AUTH_SOCK: sock };
+    let sock = "";
+    try {
+      sock = require("child_process").execSync("launchctl getenv SSH_AUTH_SOCK", { encoding: "utf8" }).trim();
+    } catch (e) {}
+    const env = { ...process.env };
+    if (sock) env.SSH_AUTH_SOCK = sock;
 
     exec(
       fullCmd,

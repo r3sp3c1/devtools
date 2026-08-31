@@ -30,22 +30,21 @@ const runDockerCmd = (server: Server | null, cmd: string): Promise<string> => {
       fullCmd = `/usr/local/bin/docker ${cmd}`; // best effort path, or just docker
     } else {
       // Remote via SSH (relies on SSH agent)
-      fullCmd = `ssh -o BatchMode=yes -o ConnectTimeout=5 -p ${server.port} ${server.user}@${server.host} "docker ${cmd}"`;
+      fullCmd = `ssh -o BatchMode=yes -o ConnectTimeout=10 -p ${server.port} ${server.user}@${server.host} "docker ${cmd}"`;
     }
 
-    const sock = require("child_process")
-      .execSync("zsh -c 'source ~/.zshrc && printenv SSH_AUTH_SOCK'")
-      .toString()
-      .trim();
-    const env = { ...process.env, SSH_AUTH_SOCK: sock };
+    let sock = "";
+    try { sock = require("child_process").execSync("launchctl getenv SSH_AUTH_SOCK", { encoding: "utf8" }).trim(); } catch (e) {}
+    const env = { ...process.env };
+    if (sock) env.SSH_AUTH_SOCK = sock;
 
-    exec(fullCmd, { env, timeout: 15000 }, (err, stdout, stderr) => {
+    exec(fullCmd, { env, timeout: 30000 }, (err, stdout, stderr) => {
       if (err) {
         // Fallback for local docker if not in /usr/local/bin
         if (!server && err.message.includes("No such file")) {
           exec(
             `docker ${cmd}`,
-            { timeout: 15000 },
+            { timeout: 30000 },
             (err2, stdout2, stderr2) => {
               if (err2) reject(new Error(stderr2 || err2.message));
               else resolve(stdout2);
@@ -216,11 +215,10 @@ function ContainerLogsView({
       ];
     }
 
-    const sock = require("child_process")
-      .execSync("zsh -c 'source ~/.zshrc && printenv SSH_AUTH_SOCK'")
-      .toString()
-      .trim();
-    const env = { ...process.env, SSH_AUTH_SOCK: sock };
+    let sock = "";
+    try { sock = require("child_process").execSync("launchctl getenv SSH_AUTH_SOCK", { encoding: "utf8" }).trim(); } catch (e) {}
+    const env = { ...process.env };
+    if (sock) env.SSH_AUTH_SOCK = sock;
     const child = spawn(cmd, args, { env });
     processRef.current = child;
 
