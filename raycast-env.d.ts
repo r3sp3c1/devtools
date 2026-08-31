@@ -91,7 +91,9 @@ declare namespace Preferences {
   /** Preferences accessible in the `scp-transfer` command */
   export type ScpTransfer = ExtensionPreferences & {
   /** SSH Terminal App - Terminal for SSH connections */
-  "sshTerminal": "Terminal" | "iTerm"
+  "sshTerminal": "Terminal" | "iTerm",
+  /** Default SCP Download Path - Default local folder to save downloaded files */
+  "defaultScpDownloadPath": string
 }
   /** Preferences accessible in the `sql-formatter` command */
   export type SqlFormatter = ExtensionPreferences & {}

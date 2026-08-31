@@ -17,6 +17,7 @@ import React from "react";
 
 interface Preferences {
   sshTerminal: string;
+  defaultScpDownloadPath?: string;
 }
 
 interface Server {
@@ -26,6 +27,59 @@ interface Server {
   ip: string;
   path: string;
   isDefault: boolean;
+}
+
+function DownloadForm({
+  server,
+  defaultLocalPath,
+  onDownload,
+}: {
+  server: Server;
+  defaultLocalPath: string;
+  onDownload: (remote: string, local: string) => void;
+}) {
+  const { pop } = useNavigation();
+  const [remotePath, setRemotePath] = useState(server.path || "/tmp/file.txt");
+  const [localPath, setLocalPath] = useState(defaultLocalPath);
+
+  return (
+    <Form
+      actions={
+        <ActionPanel>
+          <Action.SubmitForm
+            title="Start Download"
+            icon={Icon.Download}
+            onSubmit={() => {
+              if (!remotePath || !localPath) {
+                showToast({
+                  style: Toast.Style.Failure,
+                  title: "All fields are required",
+                });
+                return;
+              }
+              onDownload(remotePath, localPath);
+              pop();
+            }}
+          />
+        </ActionPanel>
+      }
+    >
+      <Form.TextField
+        id="remote"
+        title="Remote File/Folder"
+        value={remotePath}
+        onChange={setRemotePath}
+        placeholder="/var/log/syslog"
+      />
+      <Form.TextField
+        id="local"
+        title="Local Destination"
+        value={localPath}
+        onChange={setLocalPath}
+        placeholder="~/Downloads"
+      />
+    </Form>
+  );
 }
 
 function ServerForm({
@@ -197,6 +251,38 @@ export default function Command() {
     });
   };
 
+  const download = async (server: Server, remotePath: string, localPath: string) => {
+    const toast = await showToast({
+      style: Toast.Style.Animated,
+      title: "Downloading...",
+    });
+
+    const expandedLocalPath = localPath.replace(/^~/, require("os").homedir());
+    const cmd = `scp -r ${server.user}@${server.ip}:"${remotePath}" "${expandedLocalPath}"`;
+
+    let sshAuthSock = "";
+    try {
+      sshAuthSock = require("child_process")
+        .execSync("launchctl getenv SSH_AUTH_SOCK", { encoding: "utf8" })
+        .trim();
+    } catch (e) {}
+
+    const env = { ...process.env };
+    if (sshAuthSock) env.SSH_AUTH_SOCK = sshAuthSock;
+
+    exec(cmd, { env }, (error, stdout, stderr) => {
+      if (error) {
+        toast.style = Toast.Style.Failure;
+        toast.title = "Download Failed";
+        toast.message = stderr || error.message;
+      } else {
+        toast.style = Toast.Style.Success;
+        toast.title = "Download Complete";
+        toast.message = `Saved to ${localPath}`;
+      }
+    });
+  };
+
   const transfer = async (server: Server) => {
     if (files.length === 0) {
       showToast({
@@ -282,11 +368,24 @@ export default function Command() {
             <ActionPanel>
               {files.length > 0 && (
                 <Action
-                  title="Transfer Files (SCP)"
+                  title="Upload Files (SCP)"
                   icon={Icon.Upload}
                   onAction={() => transfer(s)}
                 />
               )}
+              <Action
+                title="Download File (SCP)"
+                icon={Icon.Download}
+                onAction={() =>
+                  push(
+                    <DownloadForm
+                      server={s}
+                      defaultLocalPath={prefs.defaultScpDownloadPath || "~/Downloads"}
+                      onDownload={(remote, local) => download(s, remote, local)}
+                    />
+                  )
+                }
+              />
               <Action
                 title="Connect via SSH"
                 icon={Icon.Terminal}

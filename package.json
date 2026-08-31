@@ -306,6 +306,14 @@
               "value": "iTerm"
             }
           ]
+        },
+        {
+          "name": "defaultScpDownloadPath",
+          "title": "Default SCP Download Path",
+          "description": "Default local folder to save downloaded files",
+          "type": "textfield",
+          "required": false,
+          "default": "~/Downloads"
         }
       ]
     },
