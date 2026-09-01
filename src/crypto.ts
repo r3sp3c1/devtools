@@ -61,41 +61,153 @@ export async function decryptAes(encryptedBase64: string, password?: string, key
 }
 
 export async function encryptAesFile(filePath: string, password?: string, keyObj?: CustomKey, kdfMethod = "pbkdf2", keyPassword?: string): Promise<string> {
-    const fileBuf = fs.readFileSync(filePath);
     const salt = crypto.randomBytes(16);
     const secret = keyObj ? Buffer.from(await unlockKey(keyObj, keyPassword), "base64") : await deriveKey(password!, salt, kdfMethod);
     const iv = crypto.randomBytes(12);
     const cipher = crypto.createCipheriv("aes-256-gcm", secret, iv);
     
-    const encrypted = Buffer.concat([cipher.update(fileBuf), cipher.final()]);
-    const authTag = cipher.getAuthTag();
-
-    const payload = JSON.stringify({
-        s: keyObj ? undefined : salt.toString("base64"),
-        k: kdfMethod,
-        i: iv.toString("base64"),
-        t: authTag.toString("base64"),
-        d: encrypted.toString("base64")
-    });
     const outPath = filePath + ".aes";
-    fs.writeFileSync(outPath, payload, "utf8");
+    const outFd = fs.openSync(outPath, "w");
+    
+    const sStr = keyObj ? undefined : salt.toString("base64");
+    fs.writeSync(outFd, `{"s":${JSON.stringify(sStr)},"k":${JSON.stringify(kdfMethod)},"i":${JSON.stringify(iv.toString("base64"))},"d":"`);
+    
+    const readStream = fs.createReadStream(filePath, { highWaterMark: 64 * 1024 });
+    let remainder = Buffer.alloc(0);
+    
+    try {
+        await new Promise((resolve, reject) => {
+            readStream.on("data", (chunk: Buffer) => {
+                try {
+                    const encrypted = cipher.update(chunk);
+                    const combined = Buffer.concat([remainder, encrypted]);
+                    const outputLen = combined.length - (combined.length % 3);
+                    if (outputLen > 0) {
+                        fs.writeSync(outFd, combined.subarray(0, outputLen).toString("base64"));
+                        remainder = combined.subarray(outputLen);
+                    } else {
+                        remainder = combined;
+                    }
+                } catch(e) { reject(e); }
+            });
+            readStream.on("end", () => {
+                try {
+                    const finalEnc = cipher.final();
+                    const combined = Buffer.concat([remainder, finalEnc]);
+                    if (combined.length > 0) {
+                        fs.writeSync(outFd, combined.toString("base64"));
+                    }
+                    resolve(null);
+                } catch(e) { reject(e); }
+            });
+            readStream.on("error", reject);
+        });
+        
+        const authTag = cipher.getAuthTag();
+        fs.writeSync(outFd, `","t":${JSON.stringify(authTag.toString("base64"))}}`);
+    } catch (err) {
+        fs.closeSync(outFd);
+        try { fs.unlinkSync(outPath); } catch (e) {}
+        throw err;
+    }
+    fs.closeSync(outFd);
     return outPath;
 }
 
 export async function decryptAesFile(filePath: string, password?: string, keyObj?: CustomKey, keyPassword?: string): Promise<string> {
-    const payload = JSON.parse(fs.readFileSync(filePath, "utf8"));
+    const fd = fs.openSync(filePath, "r");
+    const stat = fs.fstatSync(fd);
+    const fileSize = stat.size;
+
+    const headSize = Math.min(fileSize, 8192);
+    const headBuf = Buffer.alloc(headSize);
+    fs.readSync(fd, headBuf, 0, headSize, 0);
+    const headStr = headBuf.toString("utf8");
+
+    const dMatch = headStr.match(/"d"\s*:\s*"/);
+    if (!dMatch) {
+        fs.closeSync(fd);
+        throw new Error("Invalid encrypted file format (missing 'd' field)");
+    }
+    const dStartFileOffset = dMatch.index! + dMatch[0].length;
+
+    const tailSize = Math.min(fileSize, 8192);
+    const tailStart = Math.max(0, fileSize - tailSize);
+    const tailBuf = Buffer.alloc(tailSize);
+    fs.readSync(fd, tailBuf, 0, tailSize, tailStart);
+    const tailStr = tailBuf.toString("utf8");
+
+    let dEndFileOffset = -1;
+    if (fileSize <= 8192) {
+        dEndFileOffset = headStr.indexOf('"', dStartFileOffset);
+    } else {
+        const quoteIdx = tailStr.indexOf('"');
+        if (quoteIdx !== -1) {
+            dEndFileOffset = tailStart + quoteIdx;
+        }
+    }
+
+    if (dEndFileOffset === -1) {
+        fs.closeSync(fd);
+        throw new Error("Invalid encrypted file format (missing closing quote for 'd' field)");
+    }
+
+    const part1 = headStr.slice(0, dStartFileOffset);
+    const part2 = tailStr.slice(dEndFileOffset - tailStart);
+    const payload = JSON.parse(part1 + part2);
+
+    fs.closeSync(fd);
+
     const iv = Buffer.from(payload.i, "base64");
     const authTag = Buffer.from(payload.t, "base64");
-    const encrypted = Buffer.from(payload.d, "base64");
     const kdfMethod = payload.k || "pbkdf2";
-
     const secret = keyObj ? Buffer.from(await unlockKey(keyObj, keyPassword), "base64") : await deriveKey(password!, Buffer.from(payload.s, "base64"), kdfMethod);
+    
     const decipher = crypto.createDecipheriv("aes-256-gcm", secret, iv);
     decipher.setAuthTag(authTag);
     
-    const decrypted = Buffer.concat([decipher.update(encrypted), decipher.final()]);
     const outPath = filePath.replace(/\.aes$/, "");
-    fs.writeFileSync(outPath, decrypted);
+    const outFd = fs.openSync(outPath, "w");
+    
+    const readStream = fs.createReadStream(filePath, { start: dStartFileOffset, end: dEndFileOffset - 1, encoding: "utf8", highWaterMark: 64 * 1024 });
+    
+    let remainder = "";
+    try {
+        await new Promise((resolve, reject) => {
+            readStream.on("data", (chunk: string) => {
+                try {
+                    const combined = remainder + chunk;
+                    const validLen = combined.length - (combined.length % 4);
+                    if (validLen > 0) {
+                        const toProcess = combined.slice(0, validLen);
+                        remainder = combined.slice(validLen);
+                        const decrypted = decipher.update(toProcess, "base64");
+                        fs.writeSync(outFd, decrypted);
+                    } else {
+                        remainder = combined;
+                    }
+                } catch(e) { reject(e); }
+            });
+            readStream.on("end", () => {
+                try {
+                    if (remainder.length > 0) {
+                        const decrypted = decipher.update(remainder, "base64");
+                        fs.writeSync(outFd, decrypted);
+                    }
+                    const finalDec = decipher.final();
+                    fs.writeSync(outFd, finalDec);
+                    resolve(null);
+                } catch (e) { reject(e); }
+            });
+            readStream.on("error", reject);
+        });
+    } catch (err) {
+        fs.closeSync(outFd);
+        try { fs.unlinkSync(outPath); } catch(e){}
+        throw err;
+    }
+    fs.closeSync(outFd);
+
     return outPath;
 }
 
@@ -332,7 +444,18 @@ export async function verifyLibsodiumFile(filePath: string, keyObj: CustomKey): 
 
 
 export async function unlockKey(keyObj: CustomKey, password?: string): Promise<string> {
-  if (keyObj.privateKeyBase64.startsWith("{")) {
+  let isEncrypted = false;
+  try {
+     const decoded = Buffer.from(keyObj.privateKeyBase64, "base64").toString("utf8");
+     if (decoded.startsWith("{")) {
+        const parsed = JSON.parse(decoded);
+        if (parsed.d && parsed.i && parsed.t) {
+            isEncrypted = true;
+        }
+     }
+  } catch(e) {}
+
+  if (isEncrypted) {
      if (!password) throw new Error(`Password is required to unlock the key: ${keyObj.name}`);
      return await decryptAes(keyObj.privateKeyBase64, password);
   }

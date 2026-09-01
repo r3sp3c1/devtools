@@ -7,7 +7,18 @@
 
 /* eslint-disable @typescript-eslint/ban-types */
 
-type ExtensionPreferences = {}
+type ExtensionPreferences = {
+  /** Default Global Password - Default password for symmetric encryption when no key is selected. */
+  "defaultPassword"?: string,
+  /** Default AES Key Password - Password to unlock your default AES key. */
+  "defaultAesPassword"?: string,
+  /** Default Kyber Key Password - Password to unlock your default Kyber key. */
+  "defaultKyberPassword"?: string,
+  /** Default Libsodium Key Password - Password to unlock your default Libsodium key. */
+  "defaultLibsodiumPassword"?: string,
+  /** KDF Method - Key Derivation Function (argon2 or pbkdf2). */
+  "kdfMethod": "argon2" | "pbkdf2"
+}
 
 /** Preferences accessible in all the extension's commands */
 declare type Preferences = ExtensionPreferences

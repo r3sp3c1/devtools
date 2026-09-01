@@ -6,6 +6,48 @@
   "icon": "command-icon.png",
   "author": "Antigravity",
   "license": "MIT",
+  "preferences": [
+    {
+      "name": "defaultPassword",
+      "title": "Default Global Password",
+      "description": "Default password for symmetric encryption when no key is selected.",
+      "type": "password",
+      "required": false
+    },
+    {
+      "name": "defaultAesPassword",
+      "title": "Default AES Key Password",
+      "description": "Password to unlock your default AES key.",
+      "type": "password",
+      "required": false
+    },
+    {
+      "name": "defaultKyberPassword",
+      "title": "Default Kyber Key Password",
+      "description": "Password to unlock your default Kyber key.",
+      "type": "password",
+      "required": false
+    },
+    {
+      "name": "defaultLibsodiumPassword",
+      "title": "Default Libsodium Key Password",
+      "description": "Password to unlock your default Libsodium key.",
+      "type": "password",
+      "required": false
+    },
+    {
+      "name": "kdfMethod",
+      "title": "KDF Method",
+      "description": "Key Derivation Function (argon2 or pbkdf2).",
+      "type": "dropdown",
+      "required": false,
+      "default": "argon2",
+      "data": [
+        { "title": "Argon2", "value": "argon2" },
+        { "title": "PBKDF2", "value": "pbkdf2" }
+      ]
+    }
+  ],
   "commands": [
     {
       "name": "dashboard",
